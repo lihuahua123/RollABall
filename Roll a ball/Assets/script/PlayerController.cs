@@ -11,7 +11,16 @@ public class PlayerController : MonoBehaviour
     public Text winText;
     private Rigidbody rb;
     private int count;
-   
+    [SerializeField]
+    private ETCJoystick joystick;//虚拟摇杆
+    [SerializeField]
+    private Rigidbody rig;
+
+    [SerializeField]
+    private float runSpeed = 2.0f;//移动速度
+    [SerializeField]
+    
+
 
     private void Start()
     {
@@ -19,8 +28,15 @@ public class PlayerController : MonoBehaviour
         count = 0;
         SetCountText();
         winText.text = "";
-       
-       
+        joystick.onMoveEnd.AddListener(() => onMoveEnd());
+
+        //方式一：按键方法注册
+        joystick.OnPressLeft.AddListener(() => JoystickHandlerMoving());
+        joystick.OnPressRight.AddListener(() => JoystickHandlerMoving());
+        joystick.OnPressUp.AddListener(() => JoystickHandlerMoving());
+        joystick.OnPressDown.AddListener(() => JoystickHandlerMoving());
+
+
     }
 
   
@@ -29,14 +45,32 @@ public class PlayerController : MonoBehaviour
         float moveHorizontal = Input.GetAxis("Horizontal");
         float moveVertical = Input.GetAxis("Vertical");
         Vector3 movement = new Vector3(moveHorizontal, 0.0f,moveVertical);
-        if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved)
-        {
-            Vector2 touchDeltaPosition = Input.GetTouch(0).deltaPosition;
-            transform.Translate(touchDeltaPosition.x * speed, 0f, touchDeltaPosition.y * speed);
-        }
             rb.AddForce(movement*speed);
 
-    
+        if (ETCInput.GetAxisPressedUp("Vertical"))
+        {
+            JoystickHandlerMoving();
+        }
+
+
+        if (ETCInput.GetAxisPressedDown("Vertical"))
+        {
+            JoystickHandlerMoving();
+        }
+
+
+        if (ETCInput.GetAxisPressedLeft("Horizontal"))
+        {
+            JoystickHandlerMoving();
+
+        }
+        if (ETCInput.GetAxisPressedRight("Horizontal"))
+        {
+            JoystickHandlerMoving();
+
+        }
+
+
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -51,9 +85,38 @@ public class PlayerController : MonoBehaviour
     private void SetCountText()
     {
         countText.text = "Count: " + count.ToString();
-        if(count>=3)
+       
+    }
+    void onMoveEnd()
+    {
+        
+        rig.velocity = Vector3.zero;
+    }
+
+
+
+    void JoystickHandlerMoving()
+    {
+        if (joystick.name != "New Joystick")
         {
-            winText.text="YOU WIN";
+            return;
+        }
+
+        //获取虚拟摇杆偏移量  
+        float h = joystick.axisX.axisValue;
+        float v = joystick.axisY.axisValue;
+
+        if (Mathf.Abs(h) > 0.05f || (Mathf.Abs(v) > 0.05f))
+        {
+            Quaternion rota = transform.rotation;
+            Quaternion finl = Quaternion.LookRotation(new Vector3(h, 0, v));
+            transform.rotation = Quaternion.LerpUnclamped(rota, finl, 0.5f);
+            rig.velocity = new Vector3(h * runSpeed, rig.velocity.y, v * runSpeed);
+            
+        }
+        else
+        {
+            
         }
     }
 

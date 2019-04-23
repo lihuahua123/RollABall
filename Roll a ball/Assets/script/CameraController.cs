@@ -18,15 +18,16 @@ public class CameraController : MonoBehaviour
     void LateUpdate()
     {
         transform.position =  player.transform.position+offset;
-        /*
+        
         if (times < 0)
         {
+            times = 3000f;
             for (int i = 0; i < 3; i++)
             {
                 Instantiate(pickUp, new Vector3(Random.Range(-9f, 9f), 1, Random.Range(-9f, 9f)), Quaternion.identity);
             }
         }
-        times -= 5f;
-        */
+        times -= 10f;
+        
     }
 }
